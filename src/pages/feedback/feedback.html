@@ -1,0 +1,35 @@
+<ion-header>
+    <ion-navbar>
+        <button ion-button menuToggle>
+            <ion-icon name="menu"></ion-icon>
+        </button>
+        <ion-title>Feedback</ion-title>
+    </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+    <div>
+      <img src="assets/img/customer-feedback.png" alt="DreamHouse logo" style="display:block;width:70%;height:auto; margin-left:auto;margin-right:auto;">
+    </div>
+
+    <ion-item>
+      <ion-textarea style="height: 30vh;" [attr.rows]="10" placeholder="Please enter your feedback here." [(ngModel)]="feedbackContent"></ion-textarea>
+    </ion-item>
+    <div class="spacer" style="height: 20px;"></div>
+    <ion-row responsive-sm>
+      <ion-col>
+        <button ion-button (click)="onSubmit()" block [disabled]="feedbackContent == ''">
+          Submit
+        </button>
+      </ion-col>
+      <ion-col>
+        <button ion-button (click)="onCancel()" color="light" block [disabled]="feedbackContent == '' && postResponse == ''">
+          Cancel
+        </button>
+      </ion-col>
+    </ion-row>
+    <br>
+    <div *ngIf="postResponse">
+      <p><font color="red">{{ postResponse }}</font></p>
+    </div>
+</ion-content>

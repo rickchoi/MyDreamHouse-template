@@ -1,0 +1,28 @@
+<!--
+  Generated template for the AccountPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Account</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+
+  <button  ion-button (click)="isPushSupported()" color="positive" block>is push supported?</button>
+  <button  ion-button (click)="registerDevice()" color="positive" block>register device</button>
+  <button  ion-button (click)="getTags()" color="positive" block>get tags</button>
+  <button  ion-button (click)="subsToTags()" color="positive" block>subscribe to tags</button>
+  <button  ion-button (click)="getSubs()" color="positive" block>get subscriptions</button>
+  <button  ion-button (click)="unsubsFromTags()" color="positive" block>unsubscribe from tags</button>
+  <button  ion-button (click)="unregisterDevice()" color="positive" block>unregister device</button>
+
+</ion-content>

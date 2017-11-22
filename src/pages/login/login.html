@@ -1,0 +1,48 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Login</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+    <div class="spacer" style="width:300px;height:10px;" id="login-spacer3"></div>
+    <form id="login-form1">
+      <div>
+        <img src="assets/img/mobile_foundation_hero.png" style="display:block;width:70%;height:auto;margin-left:auto;margin-right:auto;" />
+      </div>
+      <div class="spacer" style="width:300px;height:10px;" id="login-spacer2"></div>
+      <ion-list id="login-list1">
+        <ion-item id="login-input1">
+          <ion-label stacked>
+            Username
+          </ion-label>
+          <ion-input id="username" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" 
+                      placeholder="" [(ngModel)]="login.username" name="username"></ion-input>
+        </ion-item>
+        <ion-item id="login-input2">
+          <ion-label stacked>
+            Password
+          </ion-label>
+          <ion-input id="password" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" 
+                      placeholder="" [(ngModel)]="login.password" name="password"></ion-input>
+        </ion-item>
+      </ion-list>
+      <div class="spacer" style="width:300px;height:5px;" id="login-spacer1"></div>
+      <ion-row responsive-sm>
+        <ion-col>
+          <button ion-button (click)="onLogin()" color="primary" block>
+            Login
+          </button>
+        </ion-col>
+        <ion-col>
+          <button ion-button (click)="onCancel()" color="light" block>Cancel</button>
+        </ion-col>
+      </ion-row>
+    </form>
+    <div *ngIf="challengeResponseMsg">
+      <p><font color="red">{{ challengeResponseMsg }}</font></p>
+    </div>
+</ion-content>

@@ -1,0 +1,519 @@
+/////////////////////////////////////////////////////////////////////////////////////////
+[app.componenet.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- initializeApp() - mod
+this.renderer.listen('document', 'mfpjsloaded', () => {
+            console.log('--> Mobile Foundation API plugin init completed');
+            this.authInit();
+        });
+
+- openPage() - mod
+if(page.title == "Logout") {
+            WLAuthorizationManager.logout("UserLogin").then(() => {
+                console.log('--> logout onSuccess');
+                this.nav.setRoot(LoginPage);
+                this.nav.popToRoot();
+            }).fail(response => {
+                alert('Logout failed');
+                console.log('--> logout onFailure: ' + JSON.stringify(response));
+            });
+        }
+
+- authInit() - add
+    authInit() {
+        console.log('--> authInit function called');
+        this.authHandler = WL.Client.createSecurityCheckChallengeHandler("UserLogin");  // UserLogin Security Adapter needed 
+        this.authHandler.handleChallenge = ((response: any) => {
+          
+            console.log('--> AuthHandler.handleChallenge called: ' + JSON.stringify(response));
+    
+          if (response.errorMsg) {
+            var msg = response.errorMsg + ' - Remaining attempts: ' + response.remainingAttempts
+            console.log('--> displayLoginPageChallenge ERROR: ' + msg)
+          }
+          
+          this.nav.setRoot(LoginPage, { "authHandler": this.authHandler, "isChallenged": true, "msg": msg});
+        });
+    }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[customTypings.d.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- uncomment typing definition locations of 3 IMF plugins after adding those plugins.
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[about.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+WL.Analytics.log({ "func": 'AboutPage' });
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[account.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'AccountPage' });
+this.initPush();
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+- (other functions - add)
+
+initPush() {
+    MFPPush.initialize(
+      function(successResponse) {
+          console.log('--> Successfully intialized');
+          MFPPush.registerNotificationsCallback(function(message) {
+            alert(JSON.stringify(message));        
+          });
+      }, function(failureResponse) {
+          alert('Failed to initialize');
+      });
+  }
+
+  isPushSupported(){
+    MFPPush.isPushSupported(
+      function(successResponse) {
+          alert('Push Supported: ' + successResponse);
+      }, function(failureResponse) {
+          alert('Failed to get push support status');
+      }
+    );
+  }
+
+  registerDevice() {
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.registerDevice(
+          null,
+          function(successResponse) {
+              alert('Successfully registered');
+          }, 
+          function(failureResponse) {
+              alert('Failed to register');
+              console.log('--> Failed to register device:' + JSON.stringify(failureResponse));
+          }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+  
+  getTags() {
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.getTags(
+          function(newTags) {
+              alert(newTags);
+              console.log('--> received tags: ' + JSON.stringify(newTags));
+          },
+          function(failureResponse){
+               alert('Failed to get tags');
+               console.log('--> Failed to get tags: ' + JSON.stringify(failureResponse));
+          }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+
+  subsToTags() {
+    let tags = ['sample-tag1', 'sample-tag2'];
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.subscribe(
+          tags,
+          function(tags) {
+              alert('Subscribed successfully');
+          },function(failureResponse){
+              alert('Failed to subscribe');
+              console.log('--> Failed to subscribe: ' + JSON.stringify(failureResponse));
+          }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+
+  getSubs() {
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.getSubscriptions(
+          function(subscriptions) {
+              alert(JSON.stringify(subscriptions));
+           },
+          function(failureResponse){
+              alert('Failed to get subscriptions');
+              console.log('--> Failed to get subscriptions: ' + JSON.stringify(failureResponse));
+          }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+
+  unsubsFromTags() {
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.unsubscribe(
+          this.tags,
+          function(tags) {
+              alert('Unsubscribed successfully');
+          },
+          function(failureResponse){
+              alert('Failed to unsubscribe');
+              console.log('--> Failed to unsubscribe: ' + JSON.stringify(failureResponse));
+          }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+
+  unregisterDevice() {
+    WLAuthorizationManager.obtainAccessToken("push.mobileclient").then(
+      function(accessToken) {
+        MFPPush.unregisterDevice(
+          function(successResponse) {
+             alert('Unregistered successfully');
+         },
+         function(failureResponse){
+             alert('Failed to unregister');
+             console.log('--> Failed to unregister: ' + JSON.stringify(failureResponse));
+         }
+        );
+      },
+      function(error) {
+        alert('Failed to obtainAccessToken');
+        console.log('--> Failed to obtainAccessToken: ' + JSON.stringify(error));
+      }
+    );
+  }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[broker-detail.html]
+/////////////////////////////////////////////////////////////////////////////////////////
+- (replace) <h2>{{broker.firstName}} {{broker.lastName}}</h2>
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[broker-detail.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+this.initLoading();
+this.broker = this.navParams.data;
+if(service.myBrokers.length == 0) {
+    this.loading.present();
+    service.findAll().then(data => {
+        this.broker = data[this.broker.id - 1];
+        this.loading.dismiss();
+    });
+} else {
+    service.findById(this.broker.id).then(
+        broker => this.broker = broker
+    );
+}
+
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'BrokerDetailPage' });
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[broker-list.html]
+/////////////////////////////////////////////////////////////////////////////////////////
+- (replace) <h2>{{broker.firstName}} {{broker.lastName}}</h2>
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[broker-list.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+(remove service.findAll().then())
+
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'BrokerListPage' });
+this.initLoading();
+this.loading.present();
+this.service.findAll().then(data => {
+    this.brokers = data;
+    this.loading.dismiss();
+});
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+this.loading.dismiss();
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[favorite-list.html]
+/////////////////////////////////////////////////////////////////////////////////////////
+- (replace) <img src="{{favorite.json.thumbnail}}"/>
+- (replace) <h2>{{favorite.json.title}}</h2>
+- (replace) <p>{{favorite.json.city}}, {{favorite.json.state}} ∙ {{favorite.json.price}}</p>
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[favorite-list.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+if(service.myProperties.length == 0) {
+    service.findAll();
+}
+this.getFavorites();
+
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'FavoriteListPage' });
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+- itemTapped() - mod
+(replace) this.navCtrl.push(PropertyDetailPage, favorite.json);
+
+- deleteItem() - mod
+(replace)
+this.jsonStore.deleteFavorite(favorite).then(res => {
+    this.getFavorites();
+})
+.catch(error => {
+    alert(JSON.stringify(error));
+});
+
+- getFavorites() - mod
+(replace) this.jsonStore.getFavorites().then(data => this.favorites = data);
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[feedback.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'FeedbackPage' });
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+- onSubmit() - mod
+this.postFeedback().then(res => {
+      this.feedbackContent = '';
+      this.postResponse = JSON.stringify(res);
+      let toast = this.toastCtrl.create({
+        message: 'Your feedback has been successfully delivered.',
+        cssClass: 'mytoast',
+        position: 'middle',
+        duration: 2000
+      });
+      toast.present(toast);
+}).catch(rej => {
+    this.postResponse = rej;
+});
+
+- postFeedback() - mod
+return new Promise((resolve, reject) => {
+      let dataRequest = new WLResourceRequest("/adapters/dreamhouseFeedback/postFeedback", WLResourceRequest.POST);
+      let formParams = { "params": `['${this.feedbackContent}']` };
+      dataRequest.sendFormParameters(formParams).then(response => {
+          resolve(response.responseJSON);
+      }, failure => {
+          console.log ('--> failed to post feedback', JSON.stringify(failure));
+          reject(JSON.stringify(failure));
+      })
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[login.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+console.log('--> LoginPage constructor called')
+this.authHandler = navParams.get('authHandler');
+this.isChallenged = navParams.get('isChallenged');
+this.challengeResponseMsg = navParams.get('msg');
+console.log('--> LoginPage authHandler: ', this.authHandler);
+console.log('--> LoginPage isChallenged: ', this.isChallenged);
+console.log('--> LoginPage msg: ', this.challengeResponseMsg);
+
+- ionViewDidLoad() - mod
+console.log('ionViewDidLoad LoginPage');
+this.lastPage = this.navCtrl.last();
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+- onLogin() - mod
+if(this.login.username.length * this.login.password.length == 0) {
+    this.presentAlert('Please enter valid usernamd and/or password.');
+    return;
+}
+WL.Analytics.log({ "func": 'onLogin' });
+this.jsonStore.initJsonStore();
+
+if (this.isChallenged) {
+
+    console.log('--> LoginPage userLoginChallengeHandler called [Challenged]');
+    this.authHandler.submitChallengeAnswer({ 'username': this.login.username, 'password': this.login.password });
+    this.navCtrl.setRoot(this.lastPage.component);
+} else {
+
+    console.log('--> LoginPage WLAuthorizationManager.login called [Not Challenged]');
+    WLAuthorizationManager.login("UserLogin", { 'username': this.login.username, 'password': this.login.password })
+    .then(response => {
+        console.log('-->  login: Success', JSON.stringify(response));
+        this.navCtrl.setRoot(AboutPage);
+    }, error => {
+        let errorMsg:string = JSON.stringify(error);
+        console.log('-->  login: ERROR: ', errorMsg);
+        if(errorMsg.indexOf("Account blocked") > -1) {
+        this.presentAlert('Your login account is blocked due to several failed attempts to log in. Please try again later.');
+        this.navCtrl.setRoot(WelcomePage);
+        }
+    });  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[property-detail.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+(replace)
+this.property = this.navParams.data;
+this.propertyService.findById(this.property.id).then(
+        property => this.property = property);
+this.initLoading();
+this.loading.present();
+
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'PropertyDetailPage' });
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+
+- imageLoadCompleted() - mod
+(add) this.loading.dismiss();
+
+- favorite() - mod
+(replace)
+this.jsonStore.findByID(property).then(res => { // checking duplicates
+    if(res != 0) {
+        let toast = this.toastCtrl.create({
+            message: 'Property is already in favorites',
+            cssClass: 'mytoast',
+            position: 'middle',
+            duration: 2000
+        });
+        toast.present(toast);
+    } else {
+        this.jsonStore.saveFavorite(property)
+        .then(res => {
+            let toast = this.toastCtrl.create({
+                message: 'Property added to your favorites',
+                cssClass: 'mytoast',
+                duration: 2000
+            });
+            toast.present(toast);
+        });
+    }
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[property-list.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- constructor() - mod
+(replace) this.initLoading();
+
+- ionViewDidLoad() - mod
+WL.Analytics.log({ "func": 'PropertyListPage' });
+this.loading.present();
+this.findAll();
+
+- ionViewWillLeave() - mod
+WL.Analytics.send();
+this.loading.dismiss();
+
+- findAll() - mod
+(replace)
+this.service.findAll()
+    .then(data => {
+        this.properties = data;
+        this.loading.dismiss();
+    })
+    .catch(error => alert(error));
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[welcome.html]
+/////////////////////////////////////////////////////////////////////////////////////////
+- comment out menu button in ion-navbar of ion-header
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[welcome.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+(add)
+loginApp() {
+    WL.Analytics.log({ "func": 'loginApp' });
+    this.navCtrl.setRoot(LoginPage); 
+}
+
+ionViewWillLeave() {
+    WL.Analytics.send();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[broker-service-mock.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- findAll() - mod
+(replace)
+return new Promise<any>((resolve, reject) => {
+    let dataRequest = new WLResourceRequest("/adapters/dreamhouseBroker/resource", WLResourceRequest.GET);
+    dataRequest.send().then(response => {
+        this.myBrokers = response.responseJSON;
+        resolve(this.myBrokers);
+    }, (failure) => {
+        console.log ('--> failed to load data', failure);
+        reject('WLResourceRequest failed in Brokers findAll()');
+    })
+});
+
+- findById() - mod
+(replace) return Promise.resolve(this.myBrokers[id - 1]);
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[property-service-mock.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- findAll() - mod
+(replace)
+return new Promise<any>((resolve, reject) => {
+    let dataRequest = new WLResourceRequest("/adapters/dreamhouseProperty/getProperties", WLResourceRequest.GET);
+    dataRequest.send().then(response => {
+        this.myProperties = response.responseJSON.array;
+        resolve(this.myProperties);
+    }, (failure) => {
+        console.log ('--> failed to load data', failure);
+        reject('WLResourceRequest failed in Properties findAll()');
+    })
+});
+
+- findById() - mod
+(replace) return Promise.resolve(this.myProperties[id - 1]);
+
+- findByName() - mod
+(replace)
+let key: string = searchKey.toUpperCase();
+return Promise.resolve(this.myProperties.filter((property: any) =>
+    (property.title +  ' ' + property.address +  ' ' + property.city + ' ' + property.description).toUpperCase().indexOf(key) > -1));
+
+/////////////////////////////////////////////////////////////////////////////////////////
+[json-store.ts]
+/////////////////////////////////////////////////////////////////////////////////////////
+- uncomment codes
